@@ -42,8 +42,7 @@ and for run use:
 ```bash
 CompileDaemon -command="./POSSystem"
 ```
-- `/PurchaseHistory` - View the purchase history.
-- `/dashboard-data` - Admin dashboard displaying key metrics.
+
 
 
 
