@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS System</title>
+    <style>
+        @import url(//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css);
+@import url(https://fonts.googleapis.com/css?family=Titillium+Web:300);
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 60px 1.5fr 1fr; /* Adjusted grid */
+    grid-template-rows: 1fr 1fr;
+    width: 100%;
+    height: 100%;
+}
+
+.main-menu {
+    background: #212121;
+    border-right: 5px solid black; /* Added border to match box1 */
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    left: 0;
+    width: 60px;
+    overflow: hidden;
+    transition: width 0.05s linear;
+    z-index: 1000;
+}
+
+.main-menu:hover, nav.main-menu.expanded {
+    width: 250px;
+    overflow: visible;
+}
+
+.main-menu > ul {
+    margin: 7px 0;
+}
+
+.main-menu li {
+    position: relative;
+    display: block;
+    width: 250px;
+}
+
+.main-menu li > a {
+    display: table;
+    color: #999;
+    font-family: Arial;
+    font-size: 20px;
+    text-decoration: none;
+    transition: all 0.1s linear;
+}
+
+.main-menu .nav-icon {
+    display: table-cell;
+    width: 60px;
+    height: 36px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 18px;
+}
+
+.main-menu .nav-text {
+    display: table-cell;
+    vertical-align: middle;
+    width: 190px;
+    font-family: 'Titillium Web', sans-serif;
+}
+
+.main-menu > ul.logout {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+}
+
+.box1 {
+    grid-column: 2 / 3;
+    grid-row: 1 / 3;
+    background-color: #b0b0b0;
+    border-right: 5px solid black; /* Ensures continuity */
+    overflow-y: auto; /* Allows scrolling if the list gets too long */
+}
+
+.box2 {
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+    background-color: #b0b0b0;
+    border-bottom: 5px solid black;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+}
+
+.box2 .input-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.box2 input, .box2 button {
+    margin: 5px 0;
+    padding: 10px;
+    font-size: 16px;
+}
+
+.show-inventory-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.box3 {
+    grid-column: 3 / 4;
+    grid-row: 2 / 3;
+    background-color: #b0b0b0;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Center contents vertically */
+    text-align: center; /* Center text */
+}
+
+.box3 h2 {
+    margin: 5px 0;
+    font-size: 18px;
+}
+
+#continue-payment-btn, #show-inventory-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+#continue-payment-btn {
+    margin-top: 20px; /* Adjust margin for separation from other elements */
+}
+
+#show-inventory-btn {
+    margin-top: 10px; /* Ensure margin is consistent for this button */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th, table td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+}
+
+table th {
+    background-color: #f4f4f4;
+}
+
+.action-buttons button {
+    margin: 0 5px;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+button {
+    margin: 5px;
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="main-menu">
+            <ul>
+                <li class="has-subnav">
+                    <a href="/sell">
+                        <span class="nav-text">Sell</span>
+                    </a>
+                </li>
+                <li class="has-subnav">
+                    <a href="/returnSellProduct">
+                        <span class="nav-text">Return</span>
+                    </a>
+                </li>
+            </ul>
+            <ul class="logout">
+                <li>
+                    <a href="#">
+                        <i class="fa fa-power-off fa-2x"></i>
+                        <span class="nav-text">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="box1">
+            <table id="product-list">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Product ID</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- List of products will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="box2">
+            <form id="product-form">
+                <div class="input-container">
+                    <input type="number" id="product-id" placeholder="Enter Product ID" required>
+                    <input type="number" id="quantity" placeholder="Enter Quantity" required>
+                    <button type="submit">Add/Update</button>
+                </div>
+                <button type="button" id="show-inventory-btn">Show Inventory</button>
+            </form>
+        </div>
+
+        <div class="box3">
+            <h2>Total: $<span id="total-amount">0.00</span></h2>
+            <h2>Tax (5%): $<span id="tax-amount">0.00</span></h2>
+            <h2>Grand Total: $<span id="grand-total">0.00</span></h2>
+            <button id="continue-payment-btn">Done</button>
+        </div>
+    </div>
+
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <h4>Payment</h4>
+            <p>Total Amount: $<span id="modal-total-amount"></span></p>
+    
+            <!-- Payment Method Selection -->
+            <div class="payment-methods">
+                <button id="pay-visa-btn">Pay using VISA</button>
+                <div class="cash-payment">
+                    <input type="number" id="money-from-customer" placeholder="Money from Customer" />
+                    <button id="calculate-change-btn">Calculate</button>
+                    <p>Change to Return: $<span id="change-to-return"></span></p>
+                </div>
+            </div>
+    
+            <!-- Modal Actions -->
+            <div class="modal-actions">
+                <button id="modal-done-btn">Done</button>
+                <button id="modal-close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+    
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('product-form');
+            const productIdInput = document.getElementById('product-id');
+            const quantityInput = document.getElementById('quantity');
+            const productList = document.querySelector('#product-list tbody');
+            const totalAmountElement = document.getElementById('total-amount');
+            const taxAmountElement = document.getElementById('tax-amount');
+            const grandTotalElement = document.getElementById('grand-total');
+            const continuePaymentBtn = document.getElementById('continue-payment-btn');
+            let totalAmount = 0;
+            let editingRow = null;
+        
+            function updateTotalAmount(amount) {
+                totalAmount += amount;
+                totalAmount = isNaN(totalAmount) ? 0 : totalAmount;
+                totalAmountElement.textContent = totalAmount.toFixed(2);
+                updateTaxAndGrandTotal();
+            }
+        
+            function updateTaxAndGrandTotal() {
+                const taxRate = 0.05; // 5% tax rate
+                const taxAmount = totalAmount * taxRate;
+                const grandTotal = totalAmount + taxAmount;
+        
+                taxAmountElement.textContent = isNaN(taxAmount) ? '0.00' : taxAmount.toFixed(2);
+                grandTotalElement.textContent = isNaN(grandTotal) ? '0.00' : grandTotal.toFixed(2);
+            }
+
+            let Global_invoiceId = null;
+        
+            function fetchProducts() {
+    let invoiceId = prompt('Please enter the invoice ID:');
+
+    // If the user clicks "Cancel" or enters an empty value, prompt again
+    if (invoiceId === null || invoiceId.trim() === '') {
+        alert('You must enter a valid invoice ID.');
+        return;
+    }
+
+    Global_invoiceId = invoiceId; // Set the global invoice ID
+
+    // Make the fetch request using the user-provided ID
+    fetch(`/returnSellProduct/${invoiceId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Invoice not found');
+            }
+            return response.json();
+        })
+        .then(data => {
+            fillData(data); // Assuming you have a fillData function to process the response
+        })
+        .catch(error => {
+            console.error('Error fetching invoice:', error);
+            alert('Error fetching invoice. Please check the ID and try again.');
+            // After showing the error, re-prompt the user
+            fetchProducts();
+        });
+}
+
+
+
+
+            function fillData(products) {
+                productList.innerHTML = ''; // Clear the table first
+        
+                products.forEach(product => {
+                    addProductRow(product.ProductName, product.ProductID, product.Price, product.Quantity);
+                    updateTotalAmount(product.Price * product.Quantity);
+                });
+            }
+        
+            function addProductRow(name, id, price, quantity) {
+                const row = document.createElement('tr');
+        
+                const productNameCell = document.createElement('td');
+                const productIdCell = document.createElement('td');
+                const priceCell = document.createElement('td');
+                const quantityCell = document.createElement('td');
+                const actionsCell = document.createElement('td');
+        
+                productNameCell.textContent = name;
+                productIdCell.textContent = id;
+                priceCell.textContent = `$${price.toFixed(2)}`;
+                quantityCell.textContent = quantity;
+        
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'Remove';
+                removeBtn.addEventListener('click', () => {
+                    row.remove();
+                    updateTotalAmount(-(price * quantity));
+                });
+        
+                actionsCell.appendChild(removeBtn);
+        
+                row.appendChild(productNameCell);
+                row.appendChild(productIdCell);
+                row.appendChild(priceCell);
+                row.appendChild(quantityCell);
+                row.appendChild(actionsCell);
+        
+                productList.appendChild(row);
+            }
+        
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+        
+                const productId = parseInt(productIdInput.value);
+                const quantity = parseInt(quantityInput.value);
+        
+                if (isNaN(productId) || isNaN(quantity)) {
+                    alert('Invalid product ID or quantity');
+                    return;
+                }
+        
+                try {
+                    const response = await fetch(`/sell-product-table/${productId}`);
+                    if (!response.ok) {
+                        throw new Error('Product not found');
+                    }
+        
+                    const productDetails = await response.json();
+        
+                    if (editingRow) {
+                        const oldQuantity = parseInt(editingRow.cells[3].textContent);
+                        const price = parseFloat(editingRow.cells[2].textContent.replace('$', ''));
+                        const newQuantity = oldQuantity + quantity;
+        
+                        editingRow.cells[3].textContent = newQuantity;
+                        updateTotalAmount(price * (newQuantity - oldQuantity));
+        
+                        editingRow = null;
+                    } else {
+                        const existingRow = findRowByProductId(productId);
+        
+                        if (existingRow) {
+                            const oldQuantity = parseInt(existingRow.cells[3].textContent);
+                            const price = parseFloat(existingRow.cells[2].textContent.replace('$', ''));
+                            const newQuantity = oldQuantity + quantity;
+        
+                            existingRow.cells[3].textContent = newQuantity;
+                            updateTotalAmount(price * (newQuantity - oldQuantity));
+                        } else {
+                            addProductRow(productDetails.name, productDetails.id, productDetails.price, quantity);
+                            updateTotalAmount(productDetails.price * quantity);
+                        }
+                    }
+        
+                    productIdInput.value = '';
+                    quantityInput.value = '';
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            });
+        
+            function findRowByProductId(productId) {
+                return Array.from(productList.querySelectorAll('tr')).find(row => row.cells[1].textContent === productId.toString());
+            }
+        
+            productList.addEventListener('click', function(event) {
+                if (event.target.classList.contains('edit-btn')) {
+                    const row = event.target.closest('tr');
+                    const productId = row.cells[1].textContent;
+                    const quantity = row.cells[3].textContent;
+        
+                    productIdInput.value = productId;
+                    quantityInput.value = quantity;
+                    editingRow = row;
+                } else if (event.target.classList.contains('delete-btn')) {
+                    const row = event.target.closest('tr');
+                    const totalPrice = parseFloat(row.dataset.totalPrice);
+                    row.remove();
+                    updateTotalAmount(-totalPrice);
+                }
+            });
+        
+            document.getElementById('continue-payment-btn').addEventListener('click', function() {
+                const totalAmount = parseFloat(document.getElementById('total-amount').textContent);
+                document.getElementById('modal-total-amount').textContent = totalAmount.toFixed(2);
+                document.getElementById('payment-modal').style.display = 'block';
+            });
+        
+            document.getElementById('modal-close-btn').addEventListener('click', function() {
+                document.getElementById('payment-modal').style.display = 'none';
+            });
+        
+            document.getElementById('calculate-change-btn').addEventListener('click', function() {
+                const totalAmount = parseFloat(document.getElementById('modal-total-amount').textContent);
+                const moneyFromCustomer = parseFloat(document.getElementById('money-from-customer').value);
+                const changeToReturn = moneyFromCustomer - totalAmount;
+                document.getElementById('change-to-return').textContent = isNaN(changeToReturn) ? '0.00' : changeToReturn.toFixed(2);
+            });
+        
+            document.getElementById('modal-done-btn').addEventListener('click', async function() {
+    const totalAmount = parseFloat(document.getElementById('modal-total-amount').textContent);
+    const moneyFromCustomer = parseFloat(document.getElementById('money-from-customer').value);
+    const changeToReturn = parseFloat(document.getElementById('change-to-return').textContent);
+
+    const invoiceData = {
+        total_amount: totalAmount,
+        money_from_customer: moneyFromCustomer,
+        change_to_return: changeToReturn,
+        payment_method: 'Cash',
+        payment_status: 'Pending',
+        products: Array.from(productList.querySelectorAll('tr')).map(row => ({
+            id: parseInt(row.cells[1].textContent),
+            quantity: parseInt(row.cells[3].textContent)
+        })),
+        user_id: 1 // Update this based on actual user ID
+    };
+
+    // Ensure Global_invoiceId is set before sending request
+    if (!Global_invoiceId) {
+        alert('Invoice ID is not set. Please enter a valid invoice ID.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/returnPayment/${Global_invoiceId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(invoiceData)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update invoice');
+        }
+
+        const result = await response.json();
+        alert('Invoice updated successfully');
+        document.getElementById('payment-modal').style.display = 'none';
+        location.reload(); // Refresh the page
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+
+        
+            fetchProducts();
+        });
+        </script>
+        
+</body>
+</html>

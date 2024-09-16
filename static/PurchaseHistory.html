@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase History</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #343a40;
+        }
+        .table {
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .table th {
+            background-color: #007bff;
+            color: #ffffff;
+        }
+        .table tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+        .modal-header {
+            background-color: #007bff;
+            color: #ffffff;
+        }
+        .modal-content {
+            border-radius: 5px;
+        }
+        .modal-body form {
+            margin-bottom: 0;
+        }
+        .search-sort-container {
+            margin-bottom: 20px;
+        }
+        .table-responsive {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Purchase History</h1>
+        <div class="search-sort-container mb-4 d-flex justify-content-between">
+            <div>
+                <input type="text" id="searchInput" class="form-control" placeholder="Search by Invoice Number, Product, or Status...">
+            </div>
+            <select id="sortSelect" class="form-control w-25">
+                <option value="date-asc">Date Ascending</option>
+                <option value="date-desc">Date Descending</option>
+                <option value="amount-asc">Amount Low to High</option>
+                <option value="amount-desc">Amount High to Low</option>
+            </select>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Invoice Number</th>
+                        <th>Date</th>
+                        <th>Total Amount</th>
+                        <th>Money From Customer</th>
+                        <th>Status</th>
+                        <th>Payment Method</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody id="purchaseTableBody">
+                    <!-- Purchase History will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bootstrap and jQuery JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Custom JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const sortSelect = document.getElementById('sortSelect');
+            const tableBody = document.getElementById('purchaseTableBody');
+
+            const fetchAndRenderData = () => {
+                console.log('Fetching data...');
+                fetch("/PurchaseHistoryAll")
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Data fetched:', data);
+
+                        // Sorting
+                        const sortOrder = sortSelect.value.split('-');
+                        data.sort((a, b) => {
+                            if (sortOrder[0] === 'date') {
+                                return sortOrder[1] === 'asc' ?
+                                    new Date(a.Date) - new Date(b.Date) :
+                                    new Date(b.Date) - new Date(a.Date);
+                            } else if (sortOrder[0] === 'amount') {
+                                return sortOrder[1] === 'asc' ?
+                                    a.TotalAmount - b.TotalAmount :
+                                    b.TotalAmount - a.TotalAmount;
+                            }
+                            return 0;
+                        });
+
+                        // Filtering
+                        const query = searchInput.value.toLowerCase();
+                        const filteredData = data.filter(invoice => {
+                            // Ensure fields are strings and handle missing or incorrect data
+                            const invoiceNumber = String(invoice.InvoiceNumber || '');
+                            const status = String(invoice.Status || '');
+                            const products = invoice.Products || [];
+                            const productNames = products.map(p => String(p.ProductName || '')).join(' ').toLowerCase();
+
+                            return invoiceNumber.toLowerCase().includes(query) ||
+                                status.toLowerCase().includes(query) ||
+                                productNames.includes(query);
+                        });
+
+                        // Rendering
+                        tableBody.innerHTML = ""; // Clear existing content
+                        filteredData.forEach(invoice => {
+                            invoice.Products.forEach(product => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${String(invoice.InvoiceNumber || '')}</td>
+                                    <td>${new Date(invoice.Date).toLocaleDateString()}</td>
+                                    <td>${(invoice.TotalAmount || 0).toFixed(2)}</td>
+                                    <td>${(invoice.MoneyFromCustomer || 0).toFixed(2)}</td>
+                                    <td>${String(invoice.Status || '')}</td>
+                                    <td>${String(invoice.PaymentMethod || '')}</td>
+                                    <td>${String(product.ProductName || '')}</td>
+                                    <td>${(product.Quantity || 0)}</td>
+                                `;
+                                tableBody.appendChild(row);
+                            });
+                        });
+                    })
+                    .catch(error => console.error('Error fetching purchase history:', error));
+            };
+
+            searchInput.addEventListener('input', fetchAndRenderData);
+            sortSelect.addEventListener('change', fetchAndRenderData);
+
+            fetchAndRenderData(); // Initial data load
+        });
+    </script>
+</body>
+</html>

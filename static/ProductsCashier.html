@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    body {
+    background-color: #f8f9fa;
+}
+
+h1 {
+    color: #343a40;
+}
+
+.table {
+    background-color: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.table th {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+.table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+
+
+</style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Inventory Management</h1>
+        <div class="mb-4 d-flex justify-content-between">
+            <div>
+                <input type="text" id="searchInput" class="form-control" placeholder="Search products...">
+            
+        <div class="d-flex justify-content-between mb-4">
+            <select id="sortSelect" class="form-control w-25">
+                <option value="name-asc">Name A to Z</option>
+                <option value="name-desc">Name Z to A</option>
+                <option value="price-asc">Price Low to High</option>
+                <option value="price-desc">Price High to Low</option>
+            </select>
+        </div>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Stock</th>
+                    <th>Supplier ID</th>
+                </tr>
+            </thead>
+            <tbody id="productTableBody">
+                <!-- Products will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+
+    <!-- Bootstrap and jQuery JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script> 
+    const productTableBody = document.getElementById('productTableBody');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+
+    let products = []; // This will hold your product data
+
+    // Fetch products from the backend and render them in the table
+    function fetchProducts() {
+        fetch('/products')
+            .then(response => response.json())
+            .then(data => {
+                products = data;
+                renderTable(products); // Pass products to renderTable
+            });
+    }
+
+    // Render product table
+    function renderTable(productList) {
+        productTableBody.innerHTML = ''; // Clear previous table contents
+        productList.forEach(product => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${product.ID}</td>
+                <td>${product.Name}</td>
+                <td>${product.Description}</td>
+                <td>${product.Price}</td>
+                <td>${product.Quantity}</td>
+                <td>${product.Stock}</td>
+                <td>${product.SupplierID}</td>
+            `;
+            productTableBody.appendChild(row);
+        });
+    }
+
+    function searchProducts() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filteredProducts = products.filter(product =>
+            product.Name.toLowerCase().includes(searchTerm) ||
+            product.Description.toLowerCase().includes(searchTerm)
+        );
+        sortAndRenderTable(filteredProducts);
+    }
+
+    // Sort and render products based on selected criteria
+    function sortAndRenderTable(productsToSort) {
+        const sortValue = sortSelect.value;
+        if (sortValue === 'name-asc') {
+            productsToSort.sort((a, b) => a.Name.localeCompare(b.Name));
+        } else if (sortValue === 'name-desc') {
+            productsToSort.sort((a, b) => b.Name.localeCompare(a.Name));
+        } else if (sortValue === 'price-asc') {
+            productsToSort.sort((a, b) => a.Price - b.Price);
+        } else if (sortValue === 'price-desc') {
+            productsToSort.sort((a, b) => b.Price - a.Price);
+        }
+        renderTable(productsToSort);
+    }
+
+    // Handle sort change
+    function handleSortChange() {
+        searchProducts();
+    }
+
+    // Event listeners
+    //addProductForm.addEventListener('submit', addProduct);
+    searchInput.addEventListener('input', searchProducts);
+    sortSelect.addEventListener('change', handleSortChange);
+
+    // Initial fetch of products
+    fetchProducts();
+</script>
+
+    
+    
+</body>
+</html>
